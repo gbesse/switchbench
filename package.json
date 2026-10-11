@@ -1,0 +1,41 @@
+{
+  "name": "@gbesse/switchbench",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./i18n": "./src/i18n.js",
+    "./spice": "./src/spice.js"
+  },
+  "bin": {
+    "switchbench": "bin/cli.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "public",
+    "fixtures",
+    "README.md",
+    "README.en.md",
+    "README.es.md",
+    "LICENSE",
+    "docs"
+  ],
+  "scripts": {
+    "start": "node bin/serve.js",
+    "demo": "node bin/cli.js demo",
+    "test": "node --test test/*.test.js",
+    "test:browser": "node test/browser.mjs",
+    "format:check": "prettier --check ."
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "1.55.1",
+    "prettier": "3.9.9"
+  },
+  "description": "FR: Un banc reproductible pour les défauts DC : pertes, ouverture, extinction et énergie d’écrêtage. EN: A reproducible DC fault bench: losses, opening, extinction and clamp energy. ES: Un banco reproducible para fallos DC: pérdidas, apertura, extinción y energía del limitador."
+}

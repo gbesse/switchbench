@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "origin": "synthetic",
+  "busVoltageV": 800,
+  "clampVoltageV": 1200,
+  "inductanceUh": 100,
+  "faultResistanceOhm": 0.1,
+  "loadCurrentA": 150,
+  "detectionUs": 30,
+  "devices": [
+    {
+      "id": "mechanical",
+      "openingUs": 5000,
+      "onResistanceOhm": 0.0002
+    },
+    {
+      "id": "solidState",
+      "openingUs": 2,
+      "onResistanceOhm": 0.01
+    },
+    {
+      "id": "fastRelay",
+      "openingUs": 50,
+      "onResistanceOhm": 0.0002
+    }
+  ]
+}
