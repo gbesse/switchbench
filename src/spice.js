@@ -45,6 +45,11 @@ export async function runNgspice(
   id = 'fastRelay',
   { locale = 'fr', executable = 'ngspice' } = {},
 ) {
+  try {
+    input = structuredClone(input);
+  } catch {
+    requireValue(false, locale);
+  }
   const executablePath = /[\\/]/.test(executable) ? resolve(executable) : executable;
   const netlist = spiceNetlist(input, id, { locale });
   const dir = await mkdtemp(join(tmpdir(), 'switchbench-'));

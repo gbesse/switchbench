@@ -60,3 +60,5 @@ Alfa independiente con licencia MIT, sin afiliación con Atomic Machines. Sin ac
 ## Fuentes y herramientas relacionadas
 
 [PrimeSwitch](https://www.atomicmachines.com/primeswitch) · [ngspice](https://ngspice.sourceforge.io/) · [NVIDIA 800 VDC](https://www.nvidia.com/en-sg/data-center/technologies/800-vdc-architecture/)
+
+Las entradas del informe y SPICE se copian antes del trabajo asíncrono: las mutaciones del llamante no cambian la referencia analítica después de escribir el netlist. Se rechazan objetos no copiables. Las pruebas de mutación usan un ejecutable simulado; no son validación física. La comparación ngspice real sigue como control separado en CI.

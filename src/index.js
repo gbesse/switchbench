@@ -106,6 +106,11 @@ export function simulateDevice(input, device, { locale = 'fr' } = {}) {
 
 export function compareSwitches(input, { locale = 'fr' } = {}) {
   message('notice', locale);
+  try {
+    input = structuredClone(input);
+  } catch {
+    requireValue(false, locale);
+  }
   validateScenario(input, locale);
   return {
     schemaVersion: 1,

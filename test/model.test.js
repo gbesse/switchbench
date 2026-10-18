@@ -84,3 +84,54 @@ test(
     }
   },
 );
+
+test('comparison input evidence is detached from caller and generated report mutations', () => {
+  const input = clone(),
+    expected = structuredClone(input),
+    report = compareSwitches(input);
+  input.busVoltageV = 200;
+  input.devices[0].openingUs = 1;
+  assert.deepEqual(report.inputs, expected);
+  report.inputs.devices[0].onResistanceOhm = 999;
+  assert.notEqual(input.devices[0].onResistanceOhm, 999);
+});
+test('SPICE reference stays bound to the netlist after caller changes during execution', async () => {
+  const { mkdtemp, writeFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = await mkdtemp(join(tmpdir(), 'switchbench-fixture-'));
+  try {
+    const executable = join(dir, 'fixture-engine');
+    const trace =
+      'time i(Lfault) v(contact)\n' +
+      Array.from({ length: 11 }, (_, i) => `${i * 0.00001} 150 1200`).join('\n');
+    await writeFile(
+      executable,
+      '#!/usr/bin/env node\n' +
+        "require('node:fs').writeFileSync('trace.dat'," +
+        JSON.stringify(trace) +
+        ');\n',
+      { mode: 0o700 },
+    );
+    const input = clone(),
+      expected = simulateDevice(
+        input,
+        input.devices.find((d) => d.id === 'fastRelay'),
+      ).peakCurrentA;
+    const pending = runNgspice(input, 'fastRelay', { executable });
+    input.busVoltageV = 200;
+    input.devices.find((d) => d.id === 'fastRelay').openingUs = 999;
+    const result = await pending;
+    assert.equal(result.analyticalPeakCurrentA, expected);
+    assert.equal(result.trace.length, 11);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+test('uncopyable comparison metadata is rejected in each locale', () => {
+  for (const locale of ['fr', 'en', 'es'])
+    assert.throws(
+      () => compareSwitches({ ...demo, callback() {} }, { locale }),
+      (error) => error.message === message('invalidInput', locale),
+    );
+});
