@@ -60,3 +60,5 @@ Independent MIT alpha, not affiliated with Atomic Machines. No access to their h
 ## Sources and related tools
 
 [PrimeSwitch](https://www.atomicmachines.com/primeswitch) · [ngspice](https://ngspice.sourceforge.io/) · [NVIDIA 800 VDC](https://www.nvidia.com/en-sg/data-center/technologies/800-vdc-architecture/)
+
+Report and SPICE inputs are copied before asynchronous work: caller mutations cannot change the analytical reference after the netlist is written. Uncopyable objects are rejected. Mutation tests use a fixture executable; they are not physical validation. Actual ngspice comparison remains a separate CI check.
