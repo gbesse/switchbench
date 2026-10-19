@@ -135,3 +135,63 @@ test('uncopyable comparison metadata is rejected in each locale', () => {
       (error) => error.message === message('invalidInput', locale),
     );
 });
+
+test('small-R clamp energy approaches the independently derived lossless limit', () => {
+  const input = {
+    ...clone(),
+    busVoltageV: 10000,
+    clampVoltageV: 20000,
+    inductanceUh: 100000,
+    faultResistanceOhm: 1e-5,
+    loadCurrentA: 1e-6,
+    detectionUs: 0,
+  };
+  const device = { id: 'limit', onResistanceOhm: 1e-9, openingUs: 0 };
+  const result = simulateDevice(input, device);
+  const magnetic = 0.5 * 0.1 * 1e-6 ** 2;
+  const expected = (magnetic * 20000) / (20000 - 10000);
+  assert.ok(result.clampEnergyJ > 0);
+  assert.ok(Math.abs(result.clampEnergyJ / expected - 1) < 1e-10);
+  assert.ok(
+    Math.abs(
+      (result.clampEnergyJ + result.postOpeningLineHeatJ) /
+        (magnetic + result.postOpeningSourceEnergyJ) -
+        1,
+    ) < 1e-10,
+  );
+});
+test('sub-ulp exponential changes do not erase the initial fault-current slope', () => {
+  const input = {
+    ...clone(),
+    busVoltageV: 10000,
+    clampVoltageV: 20000,
+    inductanceUh: 100000,
+    faultResistanceOhm: 1e-5,
+    loadCurrentA: 0,
+    detectionUs: 1e-9,
+  };
+  const result = simulateDevice(input, { id: 'slope', onResistanceOhm: 1e-9, openingUs: 0 });
+  const expected = (10000 / 0.1) * 1e-15;
+  assert.ok(Math.abs(result.peakCurrentA / expected - 1) < 1e-12);
+  assert.ok(result.faultI2tA2S > 0);
+});
+test('energy balance stays consistent across small and large dimensionless ratios', () => {
+  for (const current of [1e-6, 150, 1e6])
+    for (const resistance of [1e-5, 1, 1e6])
+      for (const inductance of [0.001, 100000]) {
+        const input = {
+          ...clone(),
+          busVoltageV: 10000,
+          clampVoltageV: 20000,
+          loadCurrentA: current,
+          faultResistanceOhm: resistance,
+          inductanceUh: inductance,
+          detectionUs: 30,
+        };
+        const result = simulateDevice(input, { id: 'grid', onResistanceOhm: 1e-9, openingUs: 50 });
+        const available = result.inductiveEnergyAtOpeningJ + result.postOpeningSourceEnergyJ;
+        assert.ok(
+          Math.abs((result.clampEnergyJ + result.postOpeningLineHeatJ) / available - 1) < 1e-9,
+        );
+      }
+});

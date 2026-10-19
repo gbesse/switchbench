@@ -24,6 +24,30 @@ try {
     const initial = JSON.parse(await page.locator('#report').textContent());
     assert.equal(initial.locale, locale);
     assert.ok(await page.locator('#chart svg').count());
+    assert.equal(initial.numerics.smallRatioThreshold, 0.05);
+    assert.ok(
+      (await page.locator('#findings').textContent()).includes(message('numericalMethod', locale)),
+    );
+    const edge = structuredClone(initial.inputs);
+    Object.assign(edge, {
+      busVoltageV: 10000,
+      clampVoltageV: 20000,
+      inductanceUh: 100000,
+      faultResistanceOhm: 1e-5,
+      loadCurrentA: 1e-6,
+      detectionUs: 0,
+    });
+    edge.devices = edge.devices.map((d) => ({ ...d, openingUs: 0, onResistanceOhm: 1e-9 }));
+    await page
+      .locator('summary')
+      .filter({ hasText: message('inputData', locale) })
+      .evaluate((el) => (el.parentElement.open = true));
+    await page.locator('#input').fill(JSON.stringify(edge));
+    await page.locator('#apply').click();
+    const stable = JSON.parse(await page.locator('#report').textContent());
+    assert.ok(Math.abs(stable.devices[0].clampEnergyJ / 1e-13 - 1) < 1e-10);
+    assert.equal(stable.locale, locale);
+    await page.locator('#reset').click();
     const peak = initial.devices[2].peakCurrentA;
     await page.locator('#control-detectionUs').fill('100');
     await page.locator('#form button[type=submit]').click();

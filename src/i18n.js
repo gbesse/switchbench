@@ -1,4 +1,9 @@
 export const translations = {
+  numericalMethod: [
+    'Calcul stabilisé pour les faibles rapports temps/constante RL ; mêmes hypothèses idéales, sans validation physique supplémentaire.',
+    'Stable evaluation for small time/RL-constant ratios; the same ideal assumptions, without additional physical validation.',
+    'Cálculo estable para razones pequeñas tiempo/constante RL; mismas hipótesis ideales, sin validación física adicional.',
+  ],
   selectFile: ['Choisir un fichier', 'Choose a file', 'Elegir un archivo'],
   language: ['Langue', 'Language', 'Idioma'],
   eyebrow: [
