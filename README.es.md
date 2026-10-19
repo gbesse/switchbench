@@ -62,3 +62,7 @@ Alfa independiente con licencia MIT, sin afiliación con Atomic Machines. Sin ac
 [PrimeSwitch](https://www.atomicmachines.com/primeswitch) · [ngspice](https://ngspice.sourceforge.io/) · [NVIDIA 800 VDC](https://www.nvidia.com/en-sg/data-center/technologies/800-vdc-architecture/)
 
 Las entradas del informe y SPICE se copian antes del trabajo asíncrono: las mutaciones del llamante no cambian la referencia analítica después de escribir el netlist. Se rechazan objetos no copiables. Las pruebas de mutación usan un ejecutable simulado; no son validación física. La comparación ngspice real sigue como control separado en CI.
+
+## Estabilidad numérica
+
+Para razones pequeñas duración/constante RL, integrales usan momentos adimensionales (serie de 12 términos bajo 0,05) y corrientes usan `expm1`. Evita cancelación de términos grandes y pérdida de una pendiente inicial pequeña. Tests verifican límite independiente de baja resistencia y balance energético en 18 combinaciones. El informe expone método; esta corrección numérica no valida ningún interruptor real.

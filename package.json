@@ -1,6 +1,6 @@
 {
   "name": "@gbesse/switchbench",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -37,5 +37,5 @@
     "playwright": "1.55.1",
     "prettier": "3.9.9"
   },
-  "description": "FR: Un banc reproductible pour les défauts DC : pertes, ouverture, extinction et énergie d’écrêtage. EN: A reproducible DC fault bench: losses, opening, extinction and clamp energy. ES: Un banco reproducible para fallos DC: pérdidas, apertura, extinción y energía del limitador."
+  "description": "FR: Un banc reproductible pour les d\u00e9fauts DC : pertes, ouverture, extinction et \u00e9nergie d\u2019\u00e9cr\u00eatage. EN: A reproducible DC fault bench: losses, opening, extinction and clamp energy. ES: Un banco reproducible para fallos DC: p\u00e9rdidas, apertura, extinci\u00f3n y energ\u00eda del limitador."
 }

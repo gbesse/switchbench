@@ -53,9 +53,37 @@ export function validateScenario(input, locale = 'fr') {
   return input;
 }
 
-const integral = (a, b, k, t) => a * t + (b * -Math.expm1(-k * t)) / k;
-const integralSquare = (a, b, k, t) =>
-  a * a * t + (2 * a * b * -Math.expm1(-k * t)) / k + (b * b * -Math.expm1(-2 * k * t)) / (2 * k);
+// Stable dimensionless moments avoid cancellation when a large asymptote nearly cancels.
+function smallMoments(x) {
+  let first = 0,
+    second = 0,
+    term = x / 2;
+  for (let n = 1; n <= 12; n++) {
+    first += (n % 2 ? 1 : -1) * term;
+    second += (n % 2 ? -1 : 1) * (2 ** n - 2) * term;
+    term *= x / (n + 2);
+  }
+  return { first, second };
+}
+function integral(initial, asymptote, k, t) {
+  const x = k * t;
+  if (x < 0.05) return t * (initial + (asymptote - initial) * smallMoments(x).first);
+  return asymptote * t + ((initial - asymptote) * -Math.expm1(-x)) / k;
+}
+function integralSquare(initial, asymptote, k, t) {
+  const x = k * t,
+    delta = asymptote - initial;
+  if (x < 0.05) {
+    const { first, second } = smallMoments(x);
+    return t * (initial * initial + 2 * initial * delta * first + delta * delta * second);
+  }
+  const b = initial - asymptote;
+  return (
+    asymptote * asymptote * t +
+    (2 * asymptote * b * -Math.expm1(-x)) / k +
+    (b * b * -Math.expm1(-2 * x)) / (2 * k)
+  );
+}
 
 export function simulateDevice(input, device, { locale = 'fr' } = {}) {
   validateScenario({ ...input, devices: [device] }, locale);
@@ -63,22 +91,17 @@ export function simulateDevice(input, device, { locale = 'fr' } = {}) {
     r = input.faultResistanceOhm + device.onResistanceOhm;
   const cutS = (input.detectionUs + device.openingUs) * 1e-6;
   const steady = input.busVoltageV / r;
-  const onCurrent = (t) => steady + (input.loadCurrentA - steady) * Math.exp((-r * t) / l);
+  const onCurrent = (t) =>
+    input.loadCurrentA + (steady - input.loadCurrentA) * -Math.expm1((-r * t) / l);
   const cutCurrentA = onCurrent(cutS);
   const offR = input.faultResistanceOhm,
     headroom = input.clampVoltageV - input.busVoltageV;
   const decayS = (l / offR) * Math.log1p((cutCurrentA * offR) / headroom);
   const offCurrent = (t) =>
-    Math.max(0, (cutCurrentA + headroom / offR) * Math.exp((-offR * t) / l) - headroom / offR);
-  const preI2 = Math.max(0, integralSquare(steady, input.loadCurrentA - steady, r / l, cutS));
-  const postI2 = Math.max(
-    0,
-    integralSquare(-headroom / offR, cutCurrentA + headroom / offR, offR / l, decayS),
-  );
-  const postCharge = Math.max(
-    0,
-    integral(-headroom / offR, cutCurrentA + headroom / offR, offR / l, decayS),
-  );
+    Math.max(0, cutCurrentA - (cutCurrentA + headroom / offR) * -Math.expm1((-offR * t) / l));
+  const preI2 = Math.max(0, integralSquare(input.loadCurrentA, steady, r / l, cutS));
+  const postI2 = Math.max(0, integralSquare(cutCurrentA, -headroom / offR, offR / l, decayS));
+  const postCharge = Math.max(0, integral(cutCurrentA, -headroom / offR, offR / l, decayS));
   const times = new Set([0, cutS, cutS + decayS]);
   for (let j = 0; j <= 120; j++) {
     times.add((cutS * j) / 120);
@@ -129,6 +152,10 @@ export function compareSwitches(input, { locale = 'fr' } = {}) {
     ],
     inputs: input,
     devices: input.devices.map((d) => simulateDevice(input, d, { locale })),
-    findings: [{ code: 'unknownRating', message: message('unknownRating', locale) }],
+    numerics: { smallRatioThreshold: 0.05, seriesTerms: 12, currentEvaluation: 'expm1' },
+    findings: [
+      { code: 'unknownRating', message: message('unknownRating', locale) },
+      { code: 'numericalMethod', message: message('numericalMethod', locale) },
+    ],
   };
 }

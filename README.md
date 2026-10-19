@@ -62,3 +62,7 @@ Alpha indépendante, licence MIT, sans affiliation avec Atomic Machines. Aucun a
 [PrimeSwitch](https://www.atomicmachines.com/primeswitch) · [ngspice](https://ngspice.sourceforge.io/) · [NVIDIA 800 VDC](https://www.nvidia.com/en-sg/data-center/technologies/800-vdc-architecture/)
 
 Les entrées du rapport et du calcul SPICE sont copiées avant tout travail asynchrone : modifier le dossier appelant ne peut plus changer la référence analytique après l’écriture du netlist. Un objet non copiable est refusé. Les tests de mutation utilisent un exécutable simulé ; ils ne constituent pas une validation physique. La comparaison ngspice réelle reste un contrôle séparé en CI.
+
+## Stabilité numérique
+
+Pour les petits rapports entre durée et constante RL, les intégrales utilisent des moments sans dimension (série de 12 termes sous 0,05) et les courants utilisent `expm1`. Cela évite l’annulation de grands termes et la disparition d’une faible pente initiale. Les tests vérifient la limite indépendante de faible résistance et le bilan énergétique sur 18 combinaisons. Le rapport expose la méthode ; ce correctif numérique ne valide aucun interrupteur réel.
